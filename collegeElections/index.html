@@ -5,8 +5,67 @@
       <title>Leaderboard</title>
       <link href="css/style.css" rel="stylesheet"/>
       <link href="css/bootstrap.min.css" rel="stylesheet"/>
+      
       <script src="/js/angular.min.js"></script>
       <script src="/js/jquery.min.js"></script>
+      <script src="../../js/jquery.min.js"></script>
+        <script src="../../js/angular.min.js"></script>
+        <script src="js/highcharts.min.js"></script>
+        <script src="js/exporting.min.js"></script>
+
+      <style>
+            .post-wrapper:first-child .post-inner {
+            border-top-color: rgba(0, 0, 0, 0.1);
+            }
+            .post-wrapper .post-inner {
+            background-color: white;
+            display: block;
+            cursor: pointer;
+            overflow: hidden;
+            text-decoration: none;
+            color: #666666;
+            -webkit-transition-duration: 0.25s;
+            transition-duration: 0.25s;
+            -webkit-transition-timing-function: ease-out;
+            transition-timing-function: ease-out;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            }
+            .post-wrapper .post-inner.open {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 1px rgba(0, 0, 0, 0.2);
+            border-bottom-color: transparent;
+            }
+            .post-wrapper .post-inner.open:hover {
+            background-color: white;
+            }
+            .post-wrapper .post-inner:hover {
+            background-color: #f0f2f5;
+            }
+            .post-wrapper .post-inner h2 {
+            font-weight: 400;
+            color: #54626C;
+            }
+            .post-wrapper .post-inner .text {
+            display: none;
+            }
+            .post-wrapper .post-inner p {
+            font-weight: 300;
+            padding: 10px 0;
+            }
+            .post-wrapper .post-inner p.lead {
+            font-size: 1.2em;
+            }
+            .Emoji.Emoji--forText {
+            width: 2%;
+            height: 2%;
+            padding: initial;
+            margin-left: 7px;
+            }
+        </style>
+
    </head>
    <body background = "election.jpg">
       <center>
@@ -44,42 +103,57 @@
             <br>
             <br>
             <br>
-            <div class="container">
-            <table>
-               
-               <tr>
-               <td>
-                  <td>
+            <div style="width:100%;" class="container">
+               <div style = "float:left; width:50%;">
                   <table>
-                  <th style="text-align: center;"><h3><b>{{query1}}</b></h3></th>
-                  <tr> 
-                  	<td>{{ Search1() }}</td> </tr></table>
-                  </td>
+               		 <tr>
+                      <td>
+                  		<td ng-if="leaderboard1">
+                  		<table>
+                  		<th style="text-align: center;"><h3><b>{{query1}}</b></h3></th>
+                  		<tr ng-repeat="value in leaderboard1 | limitTo:5"> 
+                   		<td>: &nbsp;&nbsp; {{value[1]}}</td> </tr></table>
+                  		</td>
+                  		</td>
+                  	  </tr>
+                  	  
+                  	  </br></br>
+                  	  </br></br>
 
-                  <td ng-if="leaderboard2">
-                  <table>
-                  <th style="text-align: center;"><h3><b>{{query2}}</b></h3></th>
-                  <tr ng-repeat="value in leaderboard2 | limitTo:5"> 
-                  	<td>{{value[0]}} &nbsp;&nbsp; : &nbsp;&nbsp; {{value[1]}}</td> </tr></table>
-                  </td>
-                  </td>
-                  </tr>
+                  	  <tr>
+                  	  	<td>
+                  		<td ng-if="leaderboard2">
+                  		<table>
+                  		<th style="text-align: center;"><h3><b>{{query2}}</b></h3></th>
+                  		<tr ng-repeat="value in leaderboard2 | limitTo:5"> 
+                  		<td>: &nbsp;&nbsp; {{value[1]}}</td> </tr></table>
+                  		</td>
+                	   </td>
+                	</tr>
+                   
+                 </table>
+                </div>
+           		<br>
+           		</br>
+           		</br>
 
-            </table>
-            
-            
+                <div style="width:50%;min-height: 410px;float: right;" class="pie-chart2">headiu</div>
+             
+            <br><br></br>
             </div>
             </div>
          </div>
          </div>
          </div>
+         <br><br></br>
       </center>
       <script>
          var app = angular.module('TweetSearch', []);
          app.controller('Controller', ['$scope', '$http', '$sce', function($scope, $http, $sce) {
-              $scope.spinner=true;
+              
              $scope.Search1 = function() {
-                var tweetc = 0;
+                 var tweetc = 0;
+                 $scope.spinner=true;
                  var QueryCommand1 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' + $scope.query1;
                  $http.jsonp(String(QueryCommand1)).success(function(response) {
 
@@ -98,16 +172,21 @@
                          var num = users[i];
                          //document.write(num+"^");
                          counts[num] = counts[num] ? counts[num]+1 : 1;
-                         tweetc=tweetc+counts[num];
+                         //tweetc=tweetc+counts[num];
                          
                      }
                      //document.write(tweetc+",");
-                     
+                     var countArr = [];
+                     for (obj in counts){
+                         countArr.push([obj,counts[obj]])
+                     }
+                     countArr.sort(function(a,b){return b[1] - a[1]});
+                     $scope.leaderboard1 = countArr;
                      
                      //return tweetc;
                      //console.log(counts);
                  }); 
-                 return tweetc;
+                 //return tweetc;
              }
              $scope.Search2 = function() {
                 $scope.spinner=true;
@@ -134,6 +213,42 @@
                      countArr.sort(function(a,b){return b[1] - a[1]});
                      $scope.leaderboard2 = countArr;
                      //console.log(counts);
+                 
+
+                     $('.pie-chart2').highcharts({
+                        chart: {
+                            plotBackgroundColor: '#B8E8E8',
+                            plotBorderWidth: null,
+                            plotShadow: false,
+                            type: 'pie'
+                        },
+                        title: {
+                            text: $scope.query2
+                        },
+                        tooltip: {
+                            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                        },
+                        plotOptions: {
+                            pie: {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                dataLabels: {
+                                    enabled: true,
+                                    format : '',
+                                    style: {
+                                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                                    }
+                                }
+                            }
+                        },
+                        series: [{
+                            name: $scope.query2,
+                            colorByPoint: true,
+                            data: $scope.leaderboard2
+                        }]
+                    });
+
+
                  });
 
              }
