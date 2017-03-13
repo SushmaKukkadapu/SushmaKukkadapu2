@@ -22,7 +22,7 @@
                    <span class="input-group-btn">
                      <button href='#' class="btn btn-default"
                           type="button" id="button"
-                          ng-click="Search()">Compare</button>
+                          ng-click="Search1(); Search2()">Compare</button>
                   </span>
                   </tr>
                   <tr> 
@@ -44,27 +44,32 @@
             <br>
             <br>
             <br>
+            <div class="container">
             <table>
                
                <tr>
-                  <td ng-if="leaderboard1">
+               <td>
+                  <td>
                   <table>
                   <th style="text-align: center;"><h3><b>{{query1}}</b></h3></th>
-                  <tr ng-repeat="value in leaderboard1 | limitTo:5"> 
-                  	<td><b>{{value[0]}} &nbsp;&nbsp; : &nbsp;&nbsp; {{value[1]}}</b></td> </tr></table>
+                  <tr> 
+                  	<td>{{ Search1() }}</td> </tr></table>
                   </td>
 
                   <td ng-if="leaderboard2">
                   <table>
                   <th style="text-align: center;"><h3><b>{{query2}}</b></h3></th>
                   <tr ng-repeat="value in leaderboard2 | limitTo:5"> 
-                  	<td><b>{{value[0]}} &nbsp;&nbsp; : &nbsp;&nbsp; {{value[1]}}</b></td> </tr></table>
+                  	<td>{{value[0]}} &nbsp;&nbsp; : &nbsp;&nbsp; {{value[1]}}</td> </tr></table>
                   </td>
-
-               </tr>
+                  </td>
+                  </tr>
 
             </table>
-
+            
+            
+            </div>
+            </div>
          </div>
          </div>
          </div>
@@ -72,13 +77,10 @@
       <script>
          var app = angular.module('TweetSearch', []);
          app.controller('Controller', ['$scope', '$http', '$sce', function($scope, $http, $sce) {
-
-             $scope.Search = function() {
-                $scope.spinner=true;
-                 var QueryCommand1 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' +
-                                    $scope.query1;
-                 var QueryCommand2 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' +
-                                    $scope.query2;
+              $scope.spinner=true;
+             $scope.Search1 = function() {
+                var tweetc = 0;
+                 var QueryCommand1 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' + $scope.query1;
                  $http.jsonp(String(QueryCommand1)).success(function(response) {
 
                      var data = response;
@@ -88,20 +90,29 @@
                          user = statuses[i].screen_name;
                          users.push(user);
                      }
-                     var counts = {};
+                     //document.write(users);
+
+                     var counts = {};   
+                     
                      for(var i = 0; i< users.length; i++) {
                          var num = users[i];
+                         //document.write(num+"^");
                          counts[num] = counts[num] ? counts[num]+1 : 1;
+                         tweetc=tweetc+counts[num];
+                         
                      }
-                     var countArr = [];
-                     for (obj in counts){
-                         countArr.push([obj,counts[obj]])
-                     }
-                     countArr.sort(function(a,b){return b[1] - a[1]});
-                     $scope.leaderboard1 = countArr;
+                     //document.write(tweetc+",");
+                     
+                     
+                     //return tweetc;
                      //console.log(counts);
-                 });
-
+                 }); 
+                 return tweetc;
+             }
+             $scope.Search2 = function() {
+                $scope.spinner=true;
+                 var QueryCommand2 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' +
+                                    $scope.query2;
                  $http.jsonp(String(QueryCommand2)).success(function(response) {
 
                      var data = response;
