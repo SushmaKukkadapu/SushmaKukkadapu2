@@ -81,13 +81,13 @@
                    <span class="input-group-btn">
                      <button href='#' class="btn btn-default"
                           type="button" id="button"
-                          ng-click="Search1(); Search2()">Compare</button>
+                          ng-click="Search()">Compare</button>
                   </span>
                   </tr>
                   <tr> 
                     <td><input type="text" id="query1"
                          class="form-control" ng-model="query1"
-                         placeholder="Search tweet1"> </td>
+                         placeholder="Search tweet1"> </td> &nbsp;
                     <td><input type="text" id="query2"
                          class="form-control" ng-model="query2"
                          placeholder="Search tweet2"> </td>
@@ -108,11 +108,11 @@
                   <table>
                		 <tr>
                       <td>
-                  		<td ng-if="leaderboard1">
+                  		<td>
                   		<table>
                   		<th style="text-align: center;"><h3><b>{{query1}}</b></h3></th>
-                  		<tr ng-repeat="value in leaderboard1 | limitTo:5"> 
-                   		<td>: &nbsp;&nbsp; {{value[1]}}</td> </tr></table>
+                  		<tr> 
+                   		<td>: &nbsp;&nbsp; {{leaderboard1}}</td> </tr></table>
                   		</td>
                   		</td>
                   	  </tr>
@@ -122,11 +122,11 @@
 
                   	  <tr>
                   	  	<td>
-                  		<td ng-if="leaderboard2">
+                  		<td>
                   		<table>
                   		<th style="text-align: center;"><h3><b>{{query2}}</b></h3></th>
-                  		<tr ng-repeat="value in leaderboard2 | limitTo:5"> 
-                  		<td>: &nbsp;&nbsp; {{value[1]}}</td> </tr></table>
+                  		<tr> 
+                  		<td>: &nbsp;&nbsp; {{leaderboard2}}</td> </tr></table>
                   		</td>
                 	   </td>
                 	</tr>
@@ -150,72 +150,45 @@
       <script>
          var app = angular.module('TweetSearch', []);
          app.controller('Controller', ['$scope', '$http', '$sce', function($scope, $http, $sce) {
-              
-             $scope.Search1 = function() {
-                 var tweetc = 0;
-                 $scope.spinner=true;
-                 var QueryCommand1 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' + $scope.query1;
-                 $http.jsonp(String(QueryCommand1)).success(function(response) {
+             $scope.leaderboard1 = 0;
+             $scope.leaderboard2 = 0;
 
-                     var data = response;
-                     var statuses = data.statuses;
-                     var users = [];
-                     for (var i=0; i<statuses.length; i++) {
-                         user = statuses[i].screen_name;
-                         users.push(user);
-                     }
-                     //document.write(users);
-
-                     var counts = {};   
-                     
-                     for(var i = 0; i< users.length; i++) {
-                         var num = users[i];
-                         //document.write(num+"^");
-                         counts[num] = counts[num] ? counts[num]+1 : 1;
-                         //tweetc=tweetc+counts[num];
-                         
-                     }
-                     //document.write(tweetc+",");
-                     var countArr = [];
-                     for (obj in counts){
-                         countArr.push([obj,counts[obj]])
-                     }
-                     countArr.sort(function(a,b){return b[1] - a[1]});
-                     $scope.leaderboard1 = countArr;
-                     
-                     //return tweetc;
-                     //console.log(counts);
-                 }); 
-                 //return tweetc;
-             }
-             $scope.Search2 = function() {
-                $scope.spinner=true;
-                 var QueryCommand2 = 'http://api.loklak.org/api/search.json?callback=JSON_CALLBACK&q=' +
-                                    $scope.query2;
-                 $http.jsonp(String(QueryCommand2)).success(function(response) {
-
-                     var data = response;
-                     var statuses = data.statuses;
-                     var users = [];
-                     for (var i=0; i<statuses.length; i++) {
-                         user = statuses[i].screen_name;
-                         users.push(user);
-                     }
-                     var counts = {};
-                     for(var i = 0; i< users.length; i++) {
-                         var num = users[i];
-                         counts[num] = counts[num] ? counts[num]+1 : 1;
-                     }
-                     var countArr = [];
-                     for (obj in counts){
-                         countArr.push([obj,counts[obj]])
-                     }
-                     countArr.sort(function(a,b){return b[1] - a[1]});
-                     $scope.leaderboard2 = countArr;
-                     //console.log(counts);
+             $scope.Search = function() {
                  
+                 $scope.spinner=true;
+                 
+                 var QueryCommand1 = 'http://loklak.org/api/search.json?q='+$scope.query1+'&source=cache&count=0&fields=mentions&limit=50/';
+                 var countCandidate1 = 0;
+                 $http.jsonp(String(QueryCommand1)).success(function(response) {
+                 	var data = response;
+                     var mention1 = data.aggregations.mentions; // {k:v} pairs
+					 var mentionedKeys = Object.keys(mention1);
+				
+					 for (var i = 0; i < mentionedKeys.length; i++) {
+   						countCandidate1 += mention1[mentionedKeys[i]];
+					 }
+                     
+                     $scope.leaderboard1 = countCandidate1;
+                    
+                 }); 
+                 
+             
+                 var QueryCommand2 = 'http://loklak.org/api/search.json?q='+$scope.query2+'&source=cache&count=0&fields=mentions&limit=50/';
+                 var countCandidate2 = 0;
+                 $http.jsonp(String(QueryCommand2)).success(function(response) {
+                 	 var data = response;
+                     var mention = data.aggregations.mentions; // {k:v} pairs
+					 var mentionedKeys = Object.keys(mention);
+					 //var countCandidate2 = 0;
+					 for (var i = 0; i < mentionedKeys.length; i++) {
+   						countCandidate2 += mention[mentionedKeys[i]];
+					 }
+					 
+                  	 $scope.leaderboard2 = countCandidate2;
+                  });
+                    
 
-                     $('.pie-chart2').highcharts({
+                    $('.pie-chart2').highcharts({
                         chart: {
                             plotBackgroundColor: '#B8E8E8',
                             plotBorderWidth: null,
@@ -223,7 +196,7 @@
                             type: 'pie'
                         },
                         title: {
-                            text: $scope.query2
+                            text: "College Elections"
                         },
                         tooltip: {
                             pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -242,16 +215,25 @@
                             }
                         },
                         series: [{
-                            name: $scope.query2,
-                            colorByPoint: true,
-                            data: $scope.leaderboard2
-                        }]
+        					name: 'College Elections',
+        					colorByPoint: true,
+        					data: [{
+            					name: $scope.query1,
+            					colorByPoint: true,
+            					data: $scope.leaderboard1
+        						}, {
+            					name: $scope.query2,
+            					colorByPoint: true,
+            					data: $scope.leaderboard2,
+            					sliced: true,
+            					selected: true
+        					}]
+    					}]
                     });
 
+			
+			}
 
-                 });
-
-             }
              window.addEventListener("keydown",   function flagup(event)
             {
               if(event.key=='Enter')
